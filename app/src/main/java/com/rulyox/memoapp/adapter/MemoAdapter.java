@@ -1,5 +1,6 @@
 package com.rulyox.memoapp.adapter;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.rulyox.memoapp.MainActivity;
 import com.rulyox.memoapp.Memo;
 import com.rulyox.memoapp.R;
 
@@ -14,9 +16,11 @@ import java.util.ArrayList;
 
 public class MemoAdapter extends RecyclerView.Adapter<MemoViewHolder> {
 
+    private Context context;
     private ArrayList<Memo> memoList;
 
-    public MemoAdapter(ArrayList<Memo> memoList) {
+    public MemoAdapter(Context context, ArrayList<Memo> memoList) {
+        this.context = context;
         this.memoList = memoList;
     }
 
@@ -31,11 +35,22 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull MemoViewHolder holder, int position) {
 
-        Memo memo = memoList.get(position);
+        final Memo memo = memoList.get(position);
 
         holder.title.setText(memo.getTitle());
         holder.text.setText(memo.getText());
         holder.date.setText(memo.getDate());
+
+        holder.parent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                MainActivity mainActivity = (MainActivity) context;
+
+                mainActivity.deleteMemo(memo.getId());
+
+            }
+        });
 
     }
 

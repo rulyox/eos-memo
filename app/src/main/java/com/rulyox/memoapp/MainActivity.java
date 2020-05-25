@@ -13,7 +13,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.rulyox.memoapp.adapter.MemoAdapter;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<Memo> memoList = new ArrayList<>();
-    private MemoAdapter memoAdapter = new MemoAdapter(memoList);
+    private MemoAdapter memoAdapter = new MemoAdapter(this, memoList);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,26 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void add(int id, String title, String text, String date) {
-
-        // add to list
-        Memo newMemo = new Memo(id, title, text, date);
-        memoList.add(newMemo);
-
-        // update recycler view
-        memoAdapter.notifyDataSetChanged();
-
-    }
-
-    private void refresh() {
+    private void loadMemo() {
 
         memoList.clear();
-
-        loadMemo();
-
-    }
-
-    private void loadMemo() {
 
         // network thread
         new Thread() {
@@ -88,14 +70,9 @@ public class MainActivity extends AppCompatActivity {
 
                 try {
 
-                    String getMemo = null;
+                    String getMemo = Requests.getMemo();
 
-                    // get memo from server
-                    while(getMemo == null) { // prevent get fail
-
-                        getMemo = Requests.getMemo();
-
-                    }
+                    if(getMemo == null) return;
 
                     // parse json array
                     JSONArray jsonArray = new JSONArray(getMemo);
@@ -110,19 +87,24 @@ public class MainActivity extends AppCompatActivity {
                         final String text = jsonObject.getString("text");
                         final String date = jsonObject.getString("date");
 
-                        // ui thread
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                add(id, title, text, date);
-
-                            }
-                        });
+                        // add to list
+                        Memo newMemo = new Memo(id, title, text, date);
+                        memoList.add(newMemo);
 
                     }
 
-                } catch (JSONException e) {
+                    // ui thread
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            // update recycler view
+                            memoAdapter.notifyDataSetChanged();
+
+                        }
+                    });
+
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -139,15 +121,22 @@ public class MainActivity extends AppCompatActivity {
 
                 Requests.addMemo("자동 추가", (memoList.size() + 1) + "", "2020");
 
-                // ui thread
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                loadMemo();
 
-                        refresh();
+            }
+        }.start();
 
-                    }
-                });
+    }
+
+    public void deleteMemo(final int id) {
+
+        new Thread() {
+            @Override
+            public void run() {
+
+                Requests.deleteMemo(id);
+
+                loadMemo();
 
             }
         }.start();
