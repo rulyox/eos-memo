@@ -1,6 +1,8 @@
 package com.rulyox.memoapp.adapter;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,9 +47,20 @@ public class MemoAdapter extends RecyclerView.Adapter<MemoViewHolder> {
             @Override
             public void onClick(View v) {
 
-                MainActivity mainActivity = (MainActivity) context;
+                final CharSequence[] items = {"Delete", "Edit"};
 
-                mainActivity.deleteMemo(memo.getId());
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
+                alertDialogBuilder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        MainActivity mainActivity = (MainActivity) context;
+                        mainActivity.clickedMemo(which, memo.getId());
+
+                    }
+                });
+
+                alertDialogBuilder.create().show();
 
             }
         });
